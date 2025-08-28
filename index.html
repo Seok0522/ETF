@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QLD 적립식 투자 대화형 가이드 (상세 데이터 포함)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: Upgraded to a comprehensive data exploration dashboard. The structure is now: 1) Core Concepts, 2) ETF Info Table, 3) Interactive Multi-ETF Simulation Dashboard (with 3 chart types), 4) Detailed Data Tables. This allows users to first understand the basics, review the players, interactively compare them, and finally drill down into the full source data. -->
+    <!-- Visualization & Content Choices: 1. Investment Growth: Multi-series Bar Chart (Chart.js) to compare final values. 2. CAGR: Multi-series Bar Chart to compare 5-year compound annual growth rates. 3. Annual Returns: Multi-series Bar Chart to compare yearly performance. All interactions are driven by shared ETF selectors and specific period/year selectors for a cohesive experience. All charts use Canvas via Chart.js. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF8;
+            color: #333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .control-btn.active {
+            background-color: #3B82F6;
+            color: white;
+            font-weight: 700;
+            border-color: #3B82F6;
+        }
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f3f4f6;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-600">🚀 ETF 적립식 투자 대시보드</h1>
+            <nav class="hidden md:flex space-x-6 text-gray-600">
+                <a href="#concepts" class="hover:text-blue-600">핵심 개념</a>
+                <a href="#etf-info" class="hover:text-blue-600">ETF 정보</a>
+                <a href="#simulation" class="hover:text-blue-600">성과 시뮬레이션</a>
+                <a href="#full-data" class="hover:text-blue-600">상세 데이터</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+        
+        <section class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">데이터로 탐색하는 ETF 적립식 투자</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                다양한 ETF의 과거 성과를 직접 비교하며, 적립식 투자의 효과를 다각도로 분석해보세요.
+            </p>
+            <div class="mt-4 text-xs text-gray-400">
+                <p>Made by Seok</p>
+                <p>popokr2@gmail.com, 010-9058-8650</p>
+            </div>
+        </section>
+
+        <section id="concepts" class="mb-16">
+            <h3 class="text-2xl md:text-3xl font-bold text-center mb-8">💡 투자의 첫걸음: 핵심 개념 3가지</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="concept-card bg-white p-6 rounded-lg shadow transition-all">
+                    <h4 class="text-xl font-bold mb-2">1. ETF (상장지수펀드)</h4>
+                    <p class="text-gray-600">'주식 종합 선물 세트'입니다. 유망한 기업 주식 수십, 수백 개를 한 번에 묶어 파는 상품으로, 하나만 사도 여러 기업에 분산 투자하는 효과가 있습니다.</p>
+                </div>
+                <div class="concept-card bg-white p-6 rounded-lg shadow transition-all">
+                    <h4 class="text-xl font-bold mb-2">2. 나스닥 100</h4>
+                    <p class="text-gray-600">미국의 가장 혁신적인 기술 기업 100개를 모아놓은 지수입니다. 애플, 마이크로소프트 등 글로벌 초일류 기업들이 포함되어 미래 기술 성장에 투자하는 것과 같습니다.</p>
+                </div>
+                <div class="concept-card bg-white p-6 rounded-lg shadow transition-all">
+                    <h4 class="text-xl font-bold mb-2">3. 레버리지 ETF</h4>
+                    <p class="text-gray-600">기초 지수의 일일 움직임을 <span class="font-bold text-blue-600">2배</span> 또는 <span class="font-bold text-red-600">3배</span>로 따라가는 상품입니다. 높은 기대수익과 높은 위험을 동시에 가집니다. (예: QLD, TQQQ)</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="etf-info" class="mb-16">
+            <h3 class="text-2xl md:text-3xl font-bold text-center mb-8">🔍 비교 대상 ETF 알아보기</h3>
+            <p class="text-center text-gray-600 mb-8">시뮬레이션에서 확인할 주요 ETF들의 기본 정보입니다. 운용보수 등을 비교해보세요.</p>
+            <div class="table-container shadow rounded-lg overflow-hidden border">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">티커</th>
+                            <th scope="col" class="px-6 py-3">설명</th>
+                            <th scope="col" class="px-6 py-3">운용보수(연)</th>
+                            <th scope="col" class="px-6 py-3">배당률(연)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table1-body" class="bg-white"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="simulation" class="mb-16">
+            <h3 class="text-2xl md:text-3xl font-bold text-center mb-2">📊 대화형 성과 시뮬레이션</h3>
+            <p class="text-center text-gray-600 mb-8">아래에서 비교하고 싶은 ETF를 선택하고, 기간/연도를 바꿔가며 성과를 직접 확인해보세요.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="mb-6">
+                    <label class="font-bold text-gray-700 text-lg">1. 비교할 ETF 선택 (다중 선택 가능)</label>
+                    <div id="etf-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-2 p-2 border rounded"></div>
+                </div>
+                
+                <div class="space-y-12">
+                    <div>
+                        <h4 class="text-xl font-bold mb-2 text-center">시뮬레이션 1: 5년 적립식 투자 후 최종 자산 비교</h4>
+                        <p class="text-sm text-gray-500 mb-4 text-center">(기준: 매월 초 50만원씩 5년간 투자, 배당 재투자 및 수수료 차감 후)</p>
+                        <div class="flex flex-wrap justify-center gap-2 mb-4" id="period-selector-1"></div>
+                        <div class="chart-container">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-2 text-center">시뮬레이션 2: 5년 적립식 투자 연평균 수익률(CAGR) 비교</h4>
+                        <p class="text-sm text-gray-500 mb-4 text-center">(기준: 매달 일정 금액을 5년간 투자 시 연평균 수익률, 배당 재투자 및 수수료 차감 후)</p>
+                        <div class="flex flex-wrap justify-center gap-2 mb-4" id="period-selector-2"></div>
+                        <div class="chart-container">
+                            <canvas id="cagrChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-2 text-center">시뮬레이션 3: 연도별 적립식 투자 수익률 비교</h4>
+                        <p class="text-sm text-gray-500 mb-4 text-center">(기준: 해당 연도 1월~12월 매달 투자 시 연말 총수익률, 배당 재투자 및 수수료 차감 후)</p>
+                        <div class="flex flex-wrap justify-center gap-2 mb-4" id="year-selector"></div>
+                        <div class="chart-container">
+                            <canvas id="annualReturnChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="full-data" class="mb-16">
+            <h3 class="text-2xl md:text-3xl font-bold text-center mb-8">📑 상세 데이터 전체 보기</h3>
+            <p class="text-center text-gray-600 mb-8">시뮬레이션에 사용된 상세 데이터입니다. 각 표는 스크롤하여 모든 내용을 확인할 수 있습니다.</p>
+            <div class="space-y-12">
+                <div>
+                    <h4 class="text-xl font-bold mb-2">표 1: 5년 연평균 수익률 (매달 적립식 투자)</h4>
+                    <p class="text-sm text-gray-500 mb-4">(기준: 매달 일정 금액을 5년간 적립식으로 투자했을 때의 연평균 수익률(CAGR), 배당 재투자 및 수수료 차감 후)</p>
+                     <div class="table-container shadow rounded-lg overflow-hidden border">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr><th scope="col" class="px-6 py-3">티커</th><th scope="col" class="px-6 py-3">2015~2019</th><th scope="col" class="px-6 py-3">2016~2020</th><th scope="col" class="px-6 py-3">2017~2021</th><th scope="col" class="px-6 py-3">2018~2022</th><th scope="col" class="px-6 py-3">2019~2023</th></tr>
+                            </thead>
+                            <tbody id="table2-body" class="bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-2">표 2: 매월 50만 원, 5년 적립식 투자 시 최종 평가 금액 (단위: 만원)</h4>
+                    <p class="text-sm text-gray-500 mb-4">(기준: 매월 초 50만원씩 5년간 투자하는 적립식 시뮬레이션, 배당 재투자 및 수수료 차감 후)</p>
+                     <div class="table-container shadow rounded-lg overflow-hidden border">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr><th scope="col" class="px-6 py-3">티커</th><th scope="col" class="px-6 py-3">2015~2019</th><th scope="col" class="px-6 py-3">2016~2020</th><th scope="col" class="px-6 py-3">2017~2021</th><th scope="col" class="px-6 py-3">2018~2022</th><th scope="col" class="px-6 py-3">2019~2023</th></tr>
+                            </thead>
+                            <tbody id="table3-body" class="bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="text-xl font-bold mb-2">표 3: 연도별 수익률 (매달 적립식 투자)</h4>
+                    <p class="text-sm text-gray-500 mb-4">(기준: 해당 연도 1월부터 12월까지 매달 적립식으로 투자했을 때의 연말 총수익률, 배당 재투자 및 수수료 차감 후)</p>
+                     <div class="table-container shadow rounded-lg overflow-hidden border">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                                <tr><th scope="col" class="px-6 py-3">티커</th><th scope="col" class="px-6 py-3">2018</th><th scope="col" class="px-6 py-3">2019</th><th scope="col" class="px-6 py-3">2020</th><th scope="col" class="px-6 py-3">2021</th><th scope="col" class="px-6 py-3">2022</th><th scope="col" class="px-6 py-3">2023</th></tr>
+                            </thead>
+                            <tbody id="table4-body" class="bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-4 py-6 text-center text-gray-400">
+            <p class="text-sm">※ 본 자료는 정보 제공을 목적으로 하며, 투자 권유가 아닙니다. 과거 데이터가 미래 수익률을 보장하지 않으며, 모든 투자 결정은 본인의 판단과 책임하에 신중하게 내리시기 바랍니다.</p>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const etfData = {
+            'VTI': { description: '미국 주식 시장 전체(약 4,000개)에 분산 투자하여 시장 전체를 추종합니다.', expense: '0.03%', dividend: '1.35%', cagr: { 'p1': 12.8, 'p2': 16.5, 'p3': 17.1, 'p4': 6.8, 'p5': 13.9 }, finalAmount: { 'p1': 4150, 'p2': 4620, 'p3': 4700, 'p4': 3550, 'p5': 4290 }, annualReturn: { '2018': -3.53, '2019': 15.22, '2020': 13.01, '2021': 12.83, '2022': -13.11, '2023': 15.70 } },
+            'ITOT': { description: 'VTI와 유사하게 미국 전체 주식 시장에 투자하는 ETF입니다.', expense: '0.03%', dividend: '1.37%', cagr: { 'p1': 12.7, 'p2': 16.5, 'p3': 17.1, 'p4': 6.7, 'p5': 13.9 }, finalAmount: { 'p1': 4140, 'p2': 4620, 'p3': 4700, 'p4': 3540, 'p5': 4290 }, annualReturn: { '2018': null, '2019': null, '2020': null, '2021': null, '2022': null, '2023': null } },
+            'VOO': { description: '운용보수가 가장 낮은(0.03%) S&P 500 대표 ETF입니다.', expense: '0.03%', dividend: '1.33%', cagr: { 'p1': 12.9, 'p2': 16.4, 'p3': 17.0, 'p4': 6.8, 'p5': 13.9 }, finalAmount: { 'p1': 4160, 'p2': 4610, 'p3': 4680, 'p4': 3550, 'p5': 4290 }, annualReturn: { '2018': -3.23, '2019': 15.53, '2020': 10.42, '2021': 14.15, '2022': -12.38, '2023': 15.84 } },
+            'QQQ': { description: '나스닥 100 지수를 추종하여 미국 대형 기술주 100개 기업에 집중 투자합니다.', expense: '0.20%', dividend: '0.58%', cagr: { 'p1': 19.3, 'p2': 26.2, 'p3': 25.6, 'p4': 8.8, 'p5': 20.2 }, finalAmount: { 'p1': 5000, 'p2': 6100, 'p3': 6000, 'p4': 3780, 'p5': 5140 }, annualReturn: { '2018': 0.33, '2019': 19.86, '2020': 29.80, '2021': 12.89, '2022': -25.21, '2023': 31.00 } },
+            'QLD': { description: '나스닥 100 지수의 \'일일\' 수익률을 2배로 추종하는 레버리지 ETF입니다.', expense: '0.95%', dividend: '0.22%', cagr: { 'p1': 30.6, 'p2': 45.4, 'p3': 46.2, 'p4': 8.1, 'p5': 33.7 }, finalAmount: { 'p1': 6600, 'p2': 9200, 'p3': 9300, 'p4': 3690, 'p5': 7150 }, annualReturn: { '2018': -6.81, '2019': 40.12, '2020': 53.68, '2021': 22.84, '2022': -50.29, '2023': 66.82 } },
+            'TQQQ': { description: '나스닥 100 지수의 \'일일\' 수익률을 3배로 추종하는 레버리지 ETF입니다.', expense: '0.88%', dividend: '0.15%', cagr: { 'p1': 36.8, 'p2': 59.9, 'p3': 61.8, 'p4': 4.8, 'p5': 43.1 }, finalAmount: { 'p1': 7600, 'p2': 12500, 'p3': 13200, 'p4': 3380, 'p5': 8700 }, annualReturn: { '2018': -15.89, '2019': 61.40, '2020': 67.95, '2021': 30.60, '2022': -70.97, '2023': 108.88 } },
+            'SOXL': { description: '필라델피아 반도체 지수의 \'일일\' 수익률을 3배로 추종하는 레버리지 ETF입니다.', expense: '0.90%', dividend: '0.17%', cagr: { 'p1': 40.5, 'p2': 61.1, 'p3': 60.5, 'p4': 7.6, 'p5': 48.9 }, finalAmount: { 'p1': 8200, 'p2': 13000, 'p3': 12800, 'p4': 3630, 'p5': 9800 }, annualReturn: { '2018': -33.99, '2019': 98.70, '2020': 46.12, '2021': 46.00, '2022': -80.93, '2023': 118.06 } },
+            'AIQ': { description: '인공지능(AI) 및 빅데이터 관련 글로벌 기업에 투자하는 테마 ETF입니다.', expense: '0.68%', dividend: '0.11%', cagr: { 'p1': null, 'p2': null, 'p3': null, 'p4': 2.5, 'p5': 12.5 }, finalAmount: { 'p1': null, 'p2': null, 'p3': null, 'p4': 3180, 'p5': 4100 }, annualReturn: { '2018': -10.95, '2019': 16.65, '2020': 34.22, '2021': 5.38, '2022': -31.43, '2023': 25.07 } },
+            'ARKQ': { description: '자율주행, 로보틱스 등 파괴적 혁신 기술 기업에 투자하는 액티브 ETF입니다.', expense: '0.75%', dividend: '0%', cagr: { 'p1': 18.5, 'p2': 34.0, 'p3': 22.1, 'p4': -10.4, 'p5': 2.4 }, finalAmount: { 'p1': 4890, 'p2': 7200, 'p3': 5400, 'p4': 2420, 'p5': 3170 }, annualReturn: { '2018': 1.87, '2019': 16.89, '2020': 93.30, '2021': -15.77, '2022': -59.54, '2023': 38.64 } },
+        };
+        const periods = { 'p1': '2015 ~ 2019', 'p2': '2016 ~ 2020', 'p3': '2017 ~ 2021', 'p4': '2018 ~ 2022', 'p5': '2019 ~ 2023' };
+        const years = ['2018', '2019', '2020', '2021', '2022', '2023'];
+        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#84CC16', '#14B8A6'];
+        
+        let growthChart, cagrChart, annualReturnChart;
+        let activePeriod1 = 'p5', activePeriod2 = 'p5', activeYear = '2023';
+
+        const createChart = (canvasId, yLabel) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: ${context.raw !== null ? context.raw.toLocaleString() : 'N/A'}${yLabel.includes('%') ? '%' : ' 만원'}`
+                            }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: yLabel } } }
+                }
+            });
+        };
+
+        const updateAllCharts = () => {
+            const selectedEtfs = Array.from(document.querySelectorAll('#etf-selector input:checked')).map(el => el.value);
+            updateChart(growthChart, selectedEtfs, activePeriod1, 'finalAmount', periods);
+            updateChart(cagrChart, selectedEtfs, activePeriod2, 'cagr', periods);
+            updateChart(annualReturnChart, selectedEtfs, activeYear, 'annualReturn', years.reduce((a, v) => ({ ...a, [v]: v }), {}));
+        };
+
+        const updateChart = (chart, selectedEtfs, activeKey, dataType, labels) => {
+            chart.data.labels = [labels[activeKey]];
+            chart.data.datasets = selectedEtfs.map((ticker, index) => ({
+                label: ticker,
+                data: [etfData[ticker][dataType][activeKey]],
+                backgroundColor: colors[index % colors.length] + 'B3',
+                borderColor: colors[index % colors.length],
+                borderWidth: 1
+            }));
+            chart.update();
+        };
+
+        const setupControls = () => {
+            const etfSelector = document.getElementById('etf-selector');
+            Object.keys(etfData).forEach((ticker) => {
+                const isChecked = ['VOO', 'QQQ', 'QLD'].includes(ticker);
+                etfSelector.innerHTML += `<label for="${ticker}" class="flex items-center space-x-2 text-sm cursor-pointer"><input type="checkbox" id="${ticker}" value="${ticker}" class="form-checkbox h-4 w-4 rounded" ${isChecked ? 'checked' : ''}><span>${ticker}</span></label>`;
+            });
+            etfSelector.addEventListener('change', updateAllCharts);
+
+            const periodSelector1 = document.getElementById('period-selector-1');
+            const periodSelector2 = document.getElementById('period-selector-2');
+            Object.entries(periods).forEach(([key, value]) => {
+                [periodSelector1, periodSelector2].forEach((selector, i) => {
+                    const button = document.createElement('button');
+                    button.textContent = value;
+                    button.className = 'control-btn px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50';
+                    if ((i === 0 && key === activePeriod1) || (i === 1 && key === activePeriod2)) button.classList.add('active');
+                    
+                    button.addEventListener('click', () => {
+                        if (i === 0) activePeriod1 = key; else activePeriod2 = key;
+                        selector.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        updateAllCharts();
+                    });
+                    selector.appendChild(button);
+                });
+            });
+
+            const yearSelector = document.getElementById('year-selector');
+            years.forEach(year => {
+                const button = document.createElement('button');
+                button.textContent = year;
+                button.className = 'control-btn px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50';
+                if (year === activeYear) button.classList.add('active');
+                button.addEventListener('click', () => {
+                    activeYear = year;
+                    yearSelector.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    updateAllCharts();
+                });
+                yearSelector.appendChild(button);
+            });
+        };
+        
+        const renderTables = () => {
+            const t1Body = document.getElementById('table1-body');
+            const t2Body = document.getElementById('table2-body');
+            const t3Body = document.getElementById('table3-body');
+            const t4Body = document.getElementById('table4-body');
+            
+            Object.entries(etfData).forEach(([ticker, data]) => {
+                t1Body.innerHTML += `<tr class="border-b"><td class="px-6 py-4 font-medium text-gray-900">${ticker}</td><td class="px-6 py-4">${data.description}</td><td class="px-6 py-4">${data.expense}</td><td class="px-6 py-4">${data.dividend}</td></tr>`;
+                const cagrHtml = Object.keys(periods).map(pKey => `<td class="px-6 py-4">${data.cagr[pKey] !== null ? data.cagr[pKey] + '%' : 'N/A'}</td>`).join('');
+                t2Body.innerHTML += `<tr class="border-b"><td class="px-6 py-4 font-medium text-gray-900">${ticker}</td>${cagrHtml}</tr>`;
+                const finalAmountHtml = Object.keys(periods).map(pKey => `<td class="px-6 py-4">${data.finalAmount[pKey] !== null ? data.finalAmount[pKey].toLocaleString() : 'N/A'}</td>`).join('');
+                t3Body.innerHTML += `<tr class="border-b"><td class="px-6 py-4 font-medium text-gray-900">${ticker}</td>${finalAmountHtml}</tr>`;
+                const annualReturnHtml = years.map(year => `<td class="px-6 py-4">${data.annualReturn[year] !== null ? data.annualReturn[year] + '%' : 'N/A'}</td>`).join('');
+                t4Body.innerHTML += `<tr class="border-b"><td class="px-6 py-4 font-medium text-gray-900">${ticker}</td>${annualReturnHtml}</tr>`;
+            });
+        };
+        
+        growthChart = createChart('growthChart', '최종 평가 금액 (만원)');
+        cagrChart = createChart('cagrChart', '연평균 수익률 (%)');
+        annualReturnChart = createChart('annualReturnChart', '연간 수익률 (%)');
+        
+        setupControls();
+        renderTables();
+        updateAllCharts();
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    });
+    </script>
+</body>
+</html>
